@@ -13,7 +13,7 @@ redis_store = FlaskRedis.from_custom_provider(StrictRedis)
 
 
 def create_app():
-    application = Flask(__name__, instance_relative_config=True, instance_path='/nutrino-libs/appconfig')
+    application = Flask(__name__, instance_relative_config=True, instance_path='/nutrino-libs/appconfig', static_url_path='/nutrino')
 
     return application
 
