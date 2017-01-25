@@ -1,0 +1,2 @@
+nutritionist==0.1.0
+services-commons==0.1.0.9
