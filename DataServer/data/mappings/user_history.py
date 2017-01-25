@@ -1,4 +1,4 @@
-from elasticsearch_dsl import DocType, Nested, Float, Keyword
+from elasticsearch_dsl import DocType, Nested, Float, Keyword, Boolean, Integer
 from elasticsearch_dsl import Index
 from elasticsearch_dsl.connections import connections
 
@@ -12,11 +12,11 @@ number_of_replicas = 0
 
 class UserData(DocType):
     nutrino_id = Keyword()
-    corrent_answer_count = Float()
-    wrong_answer_count = Float()
+    corrent_answer_count = Integer()
+    wrong_answer_count = Integer()
     game_level = Float()
     seen_foods = Keyword()
-    labels = Nested().field('food_id', Keyword()).field('label', Keyword())
+    labels = Nested().field('food_id', Keyword()).field('label', Keyword()).field('answer', Keyword())
 
     class Meta:
         doc_type = user_history_doc_type

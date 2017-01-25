@@ -179,3 +179,64 @@ def get_fooditems_for_label(nutrino_id):
     _update_seen_foods(nutrino_id, new_food_ids)
 
     return outer_json
+
+
+def get_random_fooditem(seen_foods=[]):
+    search_query_json = {
+        "query": {
+            "function_score": {
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            {
+                                "terms": {
+                                    "food_id": list(seen_foods)
+                                }
+                            }
+                        ]
+                    }
+                },
+                "functions": [
+                    {
+                        "random_score": {
+                            "seed": int(time.time())
+                        },
+                        "weight": 10
+                    }
+                ],
+                "boost_mode": "replace"
+            }
+        }
+    }
+
+    results = FoodItem.search().from_dict(search_query_json).extra(size=50).using(es).index(foods_index).doc_type(fooditems_type).execute()
+    tagged_foods = []
+
+    size = 1
+    for hit in results.hits:
+        if len(redis_api.get_food_item(hit.food_id)['images_v2']) > 0:
+            size -= 1
+            tagged_foods.append(hit.food_id)
+        if size == 0:
+            break
+
+    parsed_results_array = redis_api.get_food_items(tagged_foods)
+
+    outer_json = {
+        "foods": parsed_results_array
+    }
+
+    return outer_json
+
+
+def finish_label(nutrino_id, correct_count, wrong_count, food_id, label, answer):
+    user = _get_specific_user_data(nutrino_id)
+    user.corrent_answer_count += correct_count
+    user.wrong_answer_count += wrong_count
+
+    if 'labels' in user:
+        user.labels.append({'food_id': food_id, 'label': label, 'answer': answer})
+    else:
+        user.labels = [{'food_id': food_id, 'label': label, 'answer': answer}]
+
+    user.save(using=es, index=users_index_name)
