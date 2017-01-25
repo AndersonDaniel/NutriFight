@@ -280,11 +280,11 @@ def finish_label(nutrino_id, correct_count, wrong_count, food_id, label, answer)
 
 
 def save_game_state(nutrino_id, game_state):
-    game_state = _get_specific_user_game_state(nutrino_id)
+    game_state_obj = _get_specific_user_game_state(nutrino_id)
 
-    game_state.game_state = game_state
+    game_state_obj.game_state = game_state
 
-    game_state.save(using=es, index=users_index_name)
+    game_state_obj.save(using=es, index=users_index_name)
 
 
 def get_game_state(nutrino_id):
