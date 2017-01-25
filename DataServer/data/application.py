@@ -27,7 +27,5 @@ def init_app(application):
     api = Api(application, catch_all_404s=True)
 
     api.add_resource(foods, '/plash/fooditems/<string:nutrino_id>')
-    ## health check
-    # api.add_resource(health_check, '/health')
 
     return api

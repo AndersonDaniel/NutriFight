@@ -22,6 +22,7 @@ def _get_specific_user_data(nutrino_id):
         new_user.certainty = 0
         new_user.game_level = 0
         new_user.seen_foods = []
+        new_user.nutrino_id = nutrino_id
 
         return new_user
 
@@ -119,7 +120,7 @@ def _get_untagged_foods(seen_foods):
     if len(seen_foods) > 0:
         search_query_json['query']['function_score']['query']['bool'].update({"must_not": [{"terms": {"food_id": seen_foods}}]})
 
-    results = FoodItem.search().from_dict(search_query_json).extra(size=4).using(es).index(foods_index).doc_type(fooditems_type).execute()
+    results = FoodItem.search().from_dict(search_query_json).extra(size=1).using(es).index(foods_index).doc_type(fooditems_type).execute()
     tagged_foods = []
 
     for hit in results.hits:
@@ -132,7 +133,7 @@ def _get_untagged_foods(seen_foods):
 
 def _update_seen_foods(nutrino_id, new_foods):
     user = _get_specific_user_data(nutrino_id)
-    user.seen_foods = user.seen_foods + new_foods
+    user.seen_foods = list(user.seen_foods) + new_foods
     user.save(using=es, index=users_index_name)
 
 
@@ -150,5 +151,7 @@ def get_fooditems_for_level(nutrino_id):
     new_food_ids = []
     for food in tagged_foods + untagged_foods:
         new_food_ids.append(food['food_id'])
+
+    _update_seen_foods(nutrino_id, new_food_ids)
 
     return outer_json
