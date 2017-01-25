@@ -20,7 +20,6 @@ pytz==2016.6.1
 PyYAML==3.12
 redis==2.10.5
 requests==2.11.1
-services-commons==0.1.0.9
 six==1.10.0
 urllib3==1.20
 webargs==1.5.2
