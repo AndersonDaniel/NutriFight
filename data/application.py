@@ -21,7 +21,7 @@ def create_app():
 def init_app(application):
     application.extensions["es"] = es_client
     # Imported here to avoid circular dependencies
-    from .resources.fooditems import foods, random_foods
+    from .resources.fooditems import foods, random_foods, food_image
     from .resources.users import users
 
     # API (with errors)
@@ -30,5 +30,6 @@ def init_app(application):
     api.add_resource(foods, '/plash/fooditems/<string:nutrino_id>/_label')
     api.add_resource(random_foods, '/plash/fooditems/<string:nutrino_id>/_random')
     api.add_resource(users, '/plash/users/<string:nutrino_id>')
+    api.add_resource(food_image, '/plash/food/<path:image_path>')
 
     return api
