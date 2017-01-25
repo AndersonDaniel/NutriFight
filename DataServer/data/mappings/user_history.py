@@ -12,10 +12,11 @@ number_of_replicas = 0
 
 class UserData(DocType):
     nutrino_id = Keyword()
-    corrent_answer_count = Integer()
+    correct_answer_count = Integer()
     wrong_answer_count = Integer()
     game_level = Float()
     seen_foods = Keyword()
+    seen_foods_main_screen = Keyword()
     labels = Nested().field('food_id', Keyword()).field('label', Keyword()).field('answer', Keyword())
 
     class Meta:

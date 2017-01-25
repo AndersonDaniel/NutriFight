@@ -19,4 +19,4 @@ class random_foods(MethodResource):
     @require_appkey
     @marshal_with(FoodContainer)
     def get(self, nutrino_id):
-        return main.get_random_fooditem()
+        return main.get_random_fooditem(nutrino_id)

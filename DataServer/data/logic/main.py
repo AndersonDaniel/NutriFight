@@ -21,17 +21,29 @@ def _get_specific_user_data(nutrino_id):
         return results[0]
     else:
         new_user = UserData()
-        new_user.corrent_answer_count = 0
+        new_user.correct_answer_count = 0
         new_user.wrong_answer_count = 0
         new_user.game_level = 0
         new_user.seen_foods = []
         new_user.nutrino_id = nutrino_id
+        new_user.seen_foods_main_screen = []
 
         return new_user
 
 
 def _get_seen_foods_by_user(nutrino_id):
     return _get_specific_user_data(nutrino_id)['seen_foods']
+
+
+def _get_seen_foods_main_screen_by_user(nutrino_id):
+    user = _get_specific_user_data(nutrino_id)
+
+    if 'seen_foods_main_screen' in user:
+        return user['seen_foods_main_screen']
+    else:
+        user.seen_foods_main_screen = []
+        user.save(using=es, index=users_index_name)
+        return []
 
 
 def _get_tagged_fooditems(seen_foods, label):
@@ -181,7 +193,9 @@ def get_fooditems_for_label(nutrino_id):
     return outer_json
 
 
-def get_random_fooditem(seen_foods=[]):
+def get_random_fooditem(nutrino_id):
+    seen_foods = _get_seen_foods_main_screen_by_user(nutrino_id)
+
     search_query_json = {
         "query": {
             "function_score": {
@@ -232,10 +246,10 @@ def get_random_fooditem(seen_foods=[]):
 def finish_label(nutrino_id, correct_count, wrong_count, food_id, label, answer):
     user = _get_specific_user_data(nutrino_id)
     if 'correct_answer_count' in user:
-        user.corrent_answer_count += correct_count
+        user.correct_answer_count += correct_count
         user.wrong_answer_count += wrong_count
     else:
-        user.corrent_answer_count = correct_count
+        user.correct_answer_count = correct_count
         user.wrong_answer_count = wrong_count
 
     if 'labels' in user:
