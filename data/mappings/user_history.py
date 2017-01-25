@@ -1,10 +1,11 @@
-from elasticsearch_dsl import DocType, Nested, Float, Keyword, Boolean, Integer
+from elasticsearch_dsl import DocType, Nested, Float, Keyword, Boolean, Integer, Text
 from elasticsearch_dsl import Index
 from elasticsearch_dsl.connections import connections
 
 from ..application import es_client
 
 user_history_doc_type = 'data'
+user_game_data_doc_type = 'gamedata'
 users_index_name = 'users'
 number_of_shards = 4
 number_of_replicas = 0
@@ -21,6 +22,15 @@ class UserData(DocType):
 
     class Meta:
         doc_type = user_history_doc_type
+        using = es_client
+
+
+class GameData(DocType):
+    nutrino_id = Keyword()
+    game_state = Text()
+
+    class Meta:
+        doc_type = user_game_data_doc_type
         using = es_client
 
 

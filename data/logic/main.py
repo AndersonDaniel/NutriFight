@@ -1,7 +1,7 @@
 import time
 from . import redis_api
 from ..mappings.foods import FoodItem, foods_index, fooditems_type
-from ..mappings.user_history import UserData, users_index_name, user_history_doc_type
+from ..mappings.user_history import UserData, GameData, users_index_name, user_history_doc_type, user_game_data_doc_type
 from services_commons.extensions.proxies import es
 from ..static.tags import dietary_needs_tags, dietary_needs_caption, dietary_needs_description
 from random import randint
@@ -29,6 +29,22 @@ def _get_specific_user_data(nutrino_id):
         new_user.seen_foods_main_screen = []
 
         return new_user
+
+def _get_specific_user_game_state(nutrino_id):
+    search_object = GameData.search(using=es, index=users_index_name)
+    search_object = search_object.filter('term', nutrino_id=nutrino_id)
+
+    search_object = search_object.extra(size=1).doc_type(user_game_data_doc_type)
+
+    results = search_object.execute()
+
+    if results:
+        return results[0]
+    else:
+        user_state = GameData()
+        user_state.game_state = ''
+
+        return user_state
 
 
 def _get_seen_foods_by_user(nutrino_id):
@@ -261,3 +277,16 @@ def finish_label(nutrino_id, correct_count, wrong_count, food_id, label, answer)
         user.labels = [{'food_id': food_id, 'label': label, 'answer': answer}]
 
     user.save(using=es, index=users_index_name)
+
+
+def save_game_state(nutrino_id, game_state):
+    game_state = _get_specific_user_game_state(nutrino_id)
+
+    game_state.game_state = game_state
+
+    game_state.save(using=es, index=users_index_name)
+
+
+def get_game_state(nutrino_id):
+    game_state = _get_specific_user_game_state(nutrino_id)
+    return game_state.game_state

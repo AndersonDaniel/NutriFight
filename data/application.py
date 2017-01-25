@@ -22,7 +22,7 @@ def init_app(application):
     application.extensions["es"] = es_client
     # Imported here to avoid circular dependencies
     from .resources.fooditems import foods, random_foods
-    from .resources.users import users
+    from .resources.users import users, user_game
 
     # API (with errors)
     api = Api(application, catch_all_404s=True)
@@ -30,5 +30,6 @@ def init_app(application):
     api.add_resource(foods, '/plash/fooditems/<string:nutrino_id>/_label')
     api.add_resource(random_foods, '/plash/fooditems/<string:nutrino_id>/_random')
     api.add_resource(users, '/plash/users/<string:nutrino_id>')
+    api.add_resource(user_game, '/plash/game/<string:nutrino_id>')
 
     return api
