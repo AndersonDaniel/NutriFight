@@ -9,10 +9,10 @@ var FLOORWIDTH = 5;
 HOR_SPEED = 300;
 
 var nutrients = [
-    ['iron', 'iron.png', 100, 0, 0xBABABA],
+    ['potassium', 'banana.png', 100, 0, 0xBABABA],
     ['vitamin_c', 'orange.png', 140, 0, 0xFFB137],
-    ['vitamin_a', 'broccoli.png', 180, 0, 0x33CC33],
-    ['calcium', 'milk.png', 220, 0, 0xFFFFFF],
+    ['vitamin_a', 'carrot.png', 180, 0, 0x33CC33],
+    ['fibers', 'oats.png', 220, 0, 0xFFFFFF],
     ['fibers', 'fibers.png', 260, 0, 0xFFCC66]
 ]
 
