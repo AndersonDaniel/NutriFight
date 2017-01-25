@@ -231,8 +231,12 @@ def get_random_fooditem(seen_foods=[]):
 
 def finish_label(nutrino_id, correct_count, wrong_count, food_id, label, answer):
     user = _get_specific_user_data(nutrino_id)
-    user.corrent_answer_count += correct_count
-    user.wrong_answer_count += wrong_count
+    if 'correct_answer_count' in user:
+        user.corrent_answer_count += correct_count
+        user.wrong_answer_count += wrong_count
+    else:
+        user.corrent_answer_count = correct_count
+        user.wrong_answer_count = wrong_count
 
     if 'labels' in user:
         user.labels.append({'food_id': food_id, 'label': label, 'answer': answer})
