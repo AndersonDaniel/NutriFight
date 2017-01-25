@@ -3,13 +3,15 @@ from . import redis_api
 from ..mappings.foods import FoodItem, foods_index, fooditems_type
 from ..mappings.user_history import UserData, users_index_name, user_history_doc_type
 from services_commons.extensions.proxies import es
+from ..static.tags import dietary_needs_tags
+from random import randint
 
 # encoding=utf8
 
 
 def _get_specific_user_data(nutrino_id):
     search_object = UserData.search(using=es, index=users_index_name)
-    search_object.filter(nutrino_id=nutrino_id)
+    search_object = search_object.filter('term', nutrino_id=nutrino_id)
 
     search_object = search_object.extra(size=1).doc_type(user_history_doc_type)
 
@@ -31,7 +33,7 @@ def _get_seen_foods_by_user(nutrino_id):
     return _get_specific_user_data(nutrino_id)['seen_foods']
 
 
-def _get_tagged_fooditems(seen_foods):
+def _get_tagged_fooditems(seen_foods, label):
     search_query_json = {
         "query": {
             "function_score": {
@@ -39,16 +41,20 @@ def _get_tagged_fooditems(seen_foods):
                     "bool": {
                         "filter": [
                             {
-                                "script": {
-                                    "script": {
-                                        "inline": "doc['dietary_needs'].values.length > 4",
-                                        "lang": "painless"
-                                    }
+                                "term": {
+                                    "dietary_needs": label
                                 }
                             },
                             {
                                 "terms": {
-                                    "food_type": [1, 2, 3]
+                                    "food_type": [1, 2, 3, 4]
+                                }
+                            }
+                        ],
+                        "must_not": [
+                            {
+                                "terms": {
+                                    "food_id": list(seen_foods)
                                 }
                             }
                         ]
@@ -66,9 +72,6 @@ def _get_tagged_fooditems(seen_foods):
             }
         }
     }
-
-    if len(seen_foods) > 0:
-        search_query_json['query']['function_score']['query']['bool'].update({"must_not": [{"terms": {"food_id": seen_foods}}]})
 
     results = FoodItem.search().from_dict(search_query_json).extra(size=4).using(es).index(foods_index).doc_type(fooditems_type).execute()
     tagged_foods = []
@@ -81,7 +84,7 @@ def _get_tagged_fooditems(seen_foods):
     return parsed_results_array
 
 
-def _get_untagged_foods(seen_foods):
+def _get_untagged_foods(seen_foods, label):
     search_query_json = {
         "query": {
             "function_score": {
@@ -89,16 +92,20 @@ def _get_untagged_foods(seen_foods):
                     "bool": {
                         "filter": [
                             {
-                                "script": {
-                                    "script": {
-                                        "inline": "doc['dietary_needs'].values.length == 0",
-                                        "lang": "painless"
-                                    }
+                                "terms": {
+                                     "food_type": [1, 2, 3, 4]
+                                }
+                            }
+                        ],
+                        "must_not": [
+                            {
+                                "term": {
+                                    "dietary_needs": label
                                 }
                             },
                             {
                                 "terms": {
-                                     "food_type": [1, 2, 3]
+                                    "food_id": list(seen_foods)
                                 }
                             }
                         ]
@@ -116,9 +123,6 @@ def _get_untagged_foods(seen_foods):
             }
         }
     }
-
-    if len(seen_foods) > 0:
-        search_query_json['query']['function_score']['query']['bool'].update({"must_not": [{"terms": {"food_id": seen_foods}}]})
 
     results = FoodItem.search().from_dict(search_query_json).extra(size=1).using(es).index(foods_index).doc_type(fooditems_type).execute()
     tagged_foods = []
@@ -137,13 +141,22 @@ def _update_seen_foods(nutrino_id, new_foods):
     user.save(using=es, index=users_index_name)
 
 
-def get_fooditems_for_level(nutrino_id):
+def _get_random_label():
+    return dietary_needs_tags[randint(0, len(dietary_needs_tags) - 1)]
+
+
+def get_fooditems_for_label(nutrino_id):
     seen_foods = _get_seen_foods_by_user(nutrino_id)
 
-    tagged_foods = _get_tagged_fooditems(seen_foods)
-    untagged_foods = _get_untagged_foods(seen_foods)
+    tagged_foods = []
+    while len(tagged_foods) == 0:
+        label = _get_random_label()
+        tagged_foods = _get_tagged_fooditems(seen_foods, label)
+
+    untagged_foods = _get_untagged_foods(seen_foods, label)
 
     outer_json = {
+        "label": label,
         "tagged_foods": tagged_foods,
         "untagged_foods": untagged_foods
     }

@@ -8,5 +8,6 @@ class FoodItem(Schema):
 
 
 class LevelContainer(Schema):
+    label = fields.Str()
     tagged_foods = fields.Nested(FoodItem, many=True, dump_to='taggedFoods')
     untagged_foods = fields.Nested(FoodItem, many=True, dump_to='untaggedFoods')
