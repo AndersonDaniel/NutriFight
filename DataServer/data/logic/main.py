@@ -21,7 +21,8 @@ def _get_specific_user_data(nutrino_id):
         return results[0]
     else:
         new_user = UserData()
-        new_user.certainty = 0
+        new_user.corrent_answer_count = 0
+        new_user.wrong_answer_count = 0
         new_user.game_level = 0
         new_user.seen_foods = []
         new_user.nutrino_id = nutrino_id
@@ -73,11 +74,16 @@ def _get_tagged_fooditems(seen_foods, label):
         }
     }
 
-    results = FoodItem.search().from_dict(search_query_json).extra(size=4).using(es).index(foods_index).doc_type(fooditems_type).execute()
+    results = FoodItem.search().from_dict(search_query_json).extra(size=200).using(es).index(foods_index).doc_type(fooditems_type).execute()
     tagged_foods = []
 
+    size = 4
     for hit in results.hits:
-        tagged_foods.append(hit.food_id)
+        if len(redis_api.get_food_item(hit.food_id)['images_v2']) > 0:
+            size -= 1
+            tagged_foods.append(hit.food_id)
+        if size == 0:
+            break
 
     parsed_results_array = redis_api.get_food_items(tagged_foods)
 
@@ -124,13 +130,18 @@ def _get_untagged_foods(seen_foods, label):
         }
     }
 
-    results = FoodItem.search().from_dict(search_query_json).extra(size=1).using(es).index(foods_index).doc_type(fooditems_type).execute()
-    tagged_foods = []
+    results = FoodItem.search().from_dict(search_query_json).extra(size=20).using(es).index(foods_index).doc_type(fooditems_type).execute()
+    untagged_foods = []
 
+    size = 1
     for hit in results.hits:
-        tagged_foods.append(hit.food_id)
+        if len(redis_api.get_food_item(hit.food_id)['images_v2']) > 0:
+            size -= 1
+            untagged_foods.append(hit.food_id)
+        if size == 0:
+            break
 
-    parsed_results_array = redis_api.get_food_items(tagged_foods)
+    parsed_results_array = redis_api.get_food_items(untagged_foods)
 
     return parsed_results_array
 

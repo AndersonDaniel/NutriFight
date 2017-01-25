@@ -12,10 +12,11 @@ number_of_replicas = 0
 
 class UserData(DocType):
     nutrino_id = Keyword()
-    certainty = Float()
+    corrent_answer_count = Float()
+    wrong_answer_count = Float()
     game_level = Float()
-    labels = Nested().field('food_id', Keyword()).field('label', Keyword())
     seen_foods = Keyword()
+    labels = Nested().field('food_id', Keyword()).field('label', Keyword())
 
     class Meta:
         doc_type = user_history_doc_type
