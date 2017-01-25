@@ -3,7 +3,7 @@ from . import redis_api
 from ..mappings.foods import FoodItem, foods_index, fooditems_type
 from ..mappings.user_history import UserData, users_index_name, user_history_doc_type
 from services_commons.extensions.proxies import es
-from ..static.tags import dietary_needs_tags
+from ..static.tags import dietary_needs_tags, dietary_needs_caption, dietary_needs_description
 from random import randint
 
 # encoding=utf8
@@ -165,7 +165,8 @@ def _update_seen_foods(nutrino_id, new_foods):
 
 
 def _get_random_label():
-    return dietary_needs_tags[randint(0, len(dietary_needs_tags) - 1)]
+    random_label_index = randint(0, len(dietary_needs_tags) - 1)
+    return dietary_needs_tags[random_label_index], dietary_needs_caption[random_label_index], dietary_needs_description[random_label_index]
 
 
 def get_fooditems_for_label(nutrino_id):
@@ -174,12 +175,14 @@ def get_fooditems_for_label(nutrino_id):
     tagged_foods = []
     while len(tagged_foods) == 0:
         label = _get_random_label()
-        tagged_foods = _get_tagged_fooditems(seen_foods, label)
+        tagged_foods = _get_tagged_fooditems(seen_foods, label[0])
 
-    untagged_foods = _get_untagged_foods(seen_foods, label)
+    untagged_foods = _get_untagged_foods(seen_foods, label[0])
 
     outer_json = {
-        "label": label,
+        "label": label[0],
+        "caption": label[1],
+        "description": label[2],
         "tagged_foods": tagged_foods,
         "untagged_foods": untagged_foods
     }
