@@ -222,6 +222,13 @@ def get_random_fooditem(nutrino_id):
             "function_score": {
                 "query": {
                     "bool": {
+                        "filter": [
+                            {
+                                "term": {
+                                    "food_type": 1
+                                }
+                            }
+                        ],
                         "must_not": [
                             {
                                 "terms": {
