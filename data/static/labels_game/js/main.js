@@ -76,7 +76,8 @@ xhttp.onreadystatechange = function() {
 };
 
 //xhttp.open('GET', 'http://localhost:5001/plash/fooditems/abcdefgh/_label', true);
-xhttp.open('GET', 'http://dev-plash-server.us-west-2.elasticbeanstalk.com/plash/fooditems/abcdefgh/_label', true);
+//xhttp.open('GET', 'http://dev-plash-server.us-west-2.elasticbeanstalk.com/plash/fooditems/abcdefgh/_label', true);
+xhttp.open('GET', '/plash/fooditems/abcdefgh/_label', true);
 xhttp.setRequestHeader('x-api-key', 'random_hackathon_key_plash');
 xhttp.send();
 
@@ -119,7 +120,8 @@ var finished = function() {
 		}
 	};
 	//xhttp2.open('POST', 'http://localhost:5001/plash/users/abcdefgh', true);
-	xhttp2.open('POST', 'http://dev-plash-server.us-west-2.elasticbeanstalk.com/plash/users/abcdefgh', true);
+	//xhttp2.open('POST', 'http://dev-plash-server.us-west-2.elasticbeanstalk.com/plash/users/abcdefgh', true);
+	xhttp2.open('POST', '/plash/users/abcdefgh', true);
 	xhttp2.setRequestHeader('x-api-key', 'random_hackathon_key_plash');
 	xhttp2.setRequestHeader("Content-Type", "application/json");
 	xhttp2.send(JSON.stringify(requestData));
@@ -131,6 +133,10 @@ var finished = function() {
 var showScore = function() {
 	var scoreElement = document.getElementById("score");
 	scoreElement.textContent = "Congrats! you scored " + (correctCount+1) + "/" + 5;
+	setTimeout(function() {
+	    var username = window.location.search.split('=')[1];
+	    window.location = '/nutrino/game.html?user=' + username + '&score=' + (correctCount + 1);
+	}, 500);
 };
 
 

@@ -11,7 +11,7 @@ HOR_SPEED = 300;
 var nutrients = [
     ['potassium', 'banana.png', 100, 0, 0xFFFF99, 666306],
     ['vitamin_c', 'orange.png', 140, 0, 0xFFB137, 666401],
-    ['vitamin_a', 'carrot.png', 180, 0, 0x33CC33, 666318],
+    ['vitamin_a', 'carrot.png', 180, 20, 0x33CC33, 666318],
     ['fibers', 'oats.png', 220, 0, 0xFFCC99, 291],
     ['calcium', 'bone.png', 260, 0, 0xFFFFFF, 666301],
     ['iron', 'spin.png', 300, 0, 0x009900]
@@ -30,6 +30,7 @@ var mainState = {
         game.load.image('nutrinoman', 'assets/nutrinoman.png');
         game.load.image('background', 'assets/background.png');
         game.load.image('monster', 'assets/sugar_monster.png');
+        game.load.image('laser', 'assets/laser.png');
 
         for (var i = 0; i < nutrients.length; i++) {
             game.load.image(nutrients[i][0], 'assets/' + nutrients[i][1]);
@@ -102,6 +103,16 @@ var mainState = {
         game.load.start();
     },
 
+    shootLaser: function() {
+        if (nutrients[2][3] >= 5) {
+            nutrients[2][3] -= 5
+            laser = game.add.sprite(this.nutrinoman.x, this.nutrinoman.y, 'laser');
+            game.physics.arcade.enable(laser);
+            laser.body.velocity.x = 6 * HOR_SPEED;
+            this.lasers.add(laser);
+        }
+    },
+
     create: function() {
         this.background = game.add.tileSprite(0, 0, WIDTH, HEIGHT, 'background');
 
@@ -120,11 +131,16 @@ var mainState = {
 
         var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         spaceKey.onDown.add(this.jump, this);
+
+        var zKey = game.input.keyboard.addKey(Phaser.Keyboard.Z);
+        zKey.onDown.add(this.shootLaser, this);
+
         this.foods = game.add.group();
         this.monsters = game.add.group();
+        this.lasers = game.add.group();
 
         this.timer = game.time.events.loop(5000, function() {
-            if (Math.random() > 0.3) {
+            if (Math.random() > 0.15) {
                 this.getRandomFoodItem();
             }
             if (Math.random() > 0.4) {
@@ -143,6 +159,12 @@ var mainState = {
         for (var i = 0; i < nutrients.length; i++) {
             curr = game.add.sprite(20, nutrients[i][2], nutrients[i][0]);
         }
+
+        var username = window.location.search.split('&')[0].split('=')[1];
+        if (username) {
+            this.loadGame(username);
+            this.score += window.location.search.split('&')[1].split('=')[1];
+        }
     },
 
     update: function() {
@@ -150,6 +172,8 @@ var mainState = {
         if (this.nutrinoman.y < 0 || this.nutrinoman.y > HEIGHT) {
             this.restartGame();
         }
+
+        this.labelScore.text = this.score;
 
         game.physics.arcade.collide(this.floor, this.nutrinoman);
 
@@ -159,10 +183,15 @@ var mainState = {
             nutrinoman.body.velocity.x = 0;
         });
 
-
         self = this;
         game.physics.arcade.collide(this.nutrinoman, this.monsters, function(nutrinoman, monster) {
-            self.restartGame();
+            //self.restartGame();
+            self.switchGame();
+        });
+
+        game.physics.arcade.overlap(this.monsters, this.lasers, function(monster, laser) {
+            monster.destroy();
+            laser.destroy();
         });
 
         this.background.tilePosition.x -= 5;
@@ -194,6 +223,47 @@ var mainState = {
 
         game.load.onFileComplete.removeAll();
         restart();
+    },
+
+    saveGame: function() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                result = JSON.parse(this.responseText);
+            }
+        }
+
+        xhttp.open('POST', '/plash/game/andersource', true);
+        xhttp.setRequestHeader('x-api-key', 'random_hackathon_key_plash');
+        xhttp.setRequestHeader('Content-Type', 'application/json');
+        var data = {
+            game_data: JSON.stringify({
+                score: this.score,
+                nutrients: nutrients
+            })
+        };
+
+        xhttp.send(JSON.stringify(data));
+    },
+
+    loadGame: function(username) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                result = JSON.parse(JSON.parse(this.responseText));
+                this.score = result.score;
+                nutrients = result.nutrients;
+            }
+        }
+
+        xhttp.open('GET', '/plash/game/' + username, true);
+        xhttp.setRequestHeader('x-api-key', 'random_hackathon_key_plash');
+        xhttp.send();
+    },
+
+    switchGame: function() {
+        this.saveGame();
+        window.location = '/nutrino/labels_game/index.html?user=andersource';
     }
 };
 
