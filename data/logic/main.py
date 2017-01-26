@@ -256,9 +256,11 @@ def get_random_fooditem(nutrino_id):
 
     size = 1
     for hit in results.hits:
-        if len(redis_api.get_food_item(hit.food_id)['images_v2']) > 0:
-            size -= 1
-            tagged_foods.append(hit.food_id)
+        item = redis_api.get_food_item(hit.food_id)
+        if 'images_v2' in item:
+            if len(item['images_v2']) > 0:
+                size -= 1
+                tagged_foods.append(hit.food_id)
         if size == 0:
             break
 
