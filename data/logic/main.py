@@ -251,16 +251,18 @@ def get_random_fooditem(nutrino_id):
         }
     }
 
-    results = FoodItem.search().from_dict(search_query_json).extra(size=50).using(es).index(foods_index).doc_type(fooditems_type).execute()
+    results = FoodItem.search().from_dict(search_query_json).extra(size=1).using(es).index(foods_index).doc_type(fooditems_type).execute()
     tagged_foods = []
 
-    size = 1
+    # size = 1
     for hit in results.hits:
-        if len(redis_api.get_food_item(hit.food_id)['images_v2']) > 0:
-            size -= 1
-            tagged_foods.append(hit.food_id)
-        if size == 0:
-            break
+        # item = redis_api.get_food_item(hit.food_id)
+        # if 'images_v2' in item:
+        #     if len(item['images_v2']) > 0:
+        #         size -= 1
+        tagged_foods.append(hit.food_id)
+        # if size == 0:
+        #     break
 
     parsed_results_array = redis_api.get_food_items(tagged_foods)
 
