@@ -30,6 +30,7 @@ def _get_specific_user_data(nutrino_id):
 
         return new_user
 
+
 def _get_specific_user_game_state(nutrino_id):
     search_object = GameData.search(using=es, index=users_index_name)
     search_object = search_object.filter('term', nutrino_id=nutrino_id)
@@ -43,6 +44,7 @@ def _get_specific_user_game_state(nutrino_id):
     else:
         user_state = GameData()
         user_state.game_state = ''
+        user_state.nutrino_id = nutrino_id
 
         return user_state
 
@@ -283,6 +285,7 @@ def save_game_state(nutrino_id, game_state):
     game_state_obj = _get_specific_user_game_state(nutrino_id)
 
     game_state_obj.game_state = game_state
+    game_state_obj.nutrino_id = nutrino_id
 
     game_state_obj.save(using=es, index=users_index_name)
 
